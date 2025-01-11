@@ -1,0 +1,19 @@
+# PulseNet default configuration
+
+train:
+  batch_size: 8
+  epochs: 50
+  lr: 0.001
+  momentum: 0.9
+  weight_decay: 0.0005
+  num_workers: 4
+
+model:
+  backbone: "resnet18"
+  pretrained: true
+  num_classes: 20
+
+data:
+  train_dataset_path: "/path/to/train/dataset"
+  val_dataset_path: "/path/to/val/dataset"
+  input_size: [640, 640]
