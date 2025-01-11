@@ -3,9 +3,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 def build_backbone(backbone_name="resnet18", pretrained=True):
-    """
-    Creates a backbone (e.g., ResNet) and returns the feature-extracting layers.
-    """
+    
     if backbone_name == "resnet18":
         net = models.resnet18(pretrained=pretrained)
         # Remove the classification head (fc layer)
