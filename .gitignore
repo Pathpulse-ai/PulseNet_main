@@ -1,0 +1,46 @@
+# ----------------------------------------------------------------------------
+#  .gitignore example for Python / PyTorch project
+# ----------------------------------------------------------------------------
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# PyTorch checkpoints (optional)
+checkpoints/
+runs/
+lightning_logs/
+tensorboard_logs/
+*.pth
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Local IDE configurations (e.g., for VSCode, PyCharm)
+.vscode/
+.idea/
+
+# ----------------------------------------------------------------------------
+# (Optional) If you have large data or model files, you can ignore them.
+# However, if you want them versioned, remove these lines.
+# ----------------------------------------------------------------------------
+data/
+models/
