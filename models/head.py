@@ -7,7 +7,7 @@ class DetectionHead(nn.Module):
         super().__init__()
         self.cls_conv = nn.Conv2d(in_channels, num_classes, kernel_size=3, padding=1)
         self.reg_conv = nn.Conv2d(in_channels, 4, kernel_size=3, padding=1)
-        # You might need separate layers for anchor classification, box regression, etc.
+        
 
     def forward(self, features):
         
