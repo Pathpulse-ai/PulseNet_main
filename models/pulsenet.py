@@ -32,6 +32,6 @@ class PulseNet(nn.Module):
             # TODO: Implement classification & regression loss computations
             return loss_dict
         else:
-            # Inference: decode boxes, apply NMS, etc.
+            
             # For now, return raw outputs
             return cls_outputs, reg_outputs
