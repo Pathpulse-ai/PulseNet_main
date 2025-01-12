@@ -42,5 +42,3 @@ logs/
 # (Optional) If you have large data or model files, you can ignore them.
 # However, if you want them versioned, remove these lines.
 # ----------------------------------------------------------------------------
-data/
-models/
