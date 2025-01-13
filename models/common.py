@@ -68,3 +68,72 @@ class CSP(nn.Module):
 
     def forward(self, x):
         return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+    
+class SPP(nn.Module):
+    # Spatial Pyramid Pooling (SPP) layer https://arxiv.org/abs/1406.4729
+    def __init__(self, c1, c2, k=(5, 9, 13)):
+        super().__init__()
+        c_ = c1 // 2  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c_ * (len(k) + 1), c2, 1, 1)
+        self.m = nn.ModuleList([nn.MaxPool2d(kernel_size=x, stride=1, padding=x // 2) for x in k])
+
+    def forward(self, x):
+        x = self.cv1(x)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
+            return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
+        
+class SPPF(nn.Module):
+    # Spatial Pyramid Pooling - Fast (SPPF) layer by Glenn Jocher
+    def __init__(self, c1, c2, k=5):  # equivalent to SPP(k=(5, 9, 13))
+        super().__init__()
+        c_ = c1 // 2  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c_ * 4, c2, 1, 1)
+        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        # self.m = SoftPool2d(kernel_size=k, stride=1, padding=k // 2)
+
+    def forward(self, x):
+        x = self.cv1(x)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
+            y1 = self.m(x)
+            y2 = self.m(y1)
+            return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+
+class ASPP(torch.nn.Module):
+    
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        kernel_sizes = [1, 3, 3, 1]
+        dilations = [1, 3, 6, 1]
+        paddings = [0, 3, 6, 0]
+        self.aspp = torch.nn.ModuleList()
+        for aspp_idx in range(len(kernel_sizes)):
+            conv = torch.nn.Conv2d(
+                in_channels,
+                out_channels,
+                kernel_size=kernel_sizes[aspp_idx],
+                stride=1,
+                dilation=dilations[aspp_idx],
+                padding=paddings[aspp_idx],
+                bias=True)
+            self.aspp.append(conv)
+        self.gap = torch.nn.AdaptiveAvgPool2d(1)
+        self.aspp_num = len(kernel_sizes)
+        for m in self.modules():
+            if isinstance(m, torch.nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                m.bias.data.fill_(0)
+
+    def forward(self, x):
+        avg_x = self.gap(x)
+        out = []
+        for aspp_idx in range(self.aspp_num):
+            inp = avg_x if (aspp_idx == self.aspp_num - 1) else x
+            out.append(F.relu_(self.aspp[aspp_idx](inp)))
+        out[-1] = out[-1].expand_as(out[-2])
+        out = torch.cat(out, dim=1)
+        return out
